@@ -39,12 +39,18 @@
    - [x] `wiki-ingest` (pkm/30-knowledge/00-wiki → ./30-knowledge/00-wiki)
    - [x] `wiki-lint` (동일 경로 조정)
 
-3. **Agents 포팅 (범용만)**
-   - `research-worker`
-   - `analysis-worker`
-   - `content-worker`
-   - `development-worker`
-   - `zettelkasten-linker`
+3. **Agents 포팅 (범용만)** ✅ 완료 (2026-04-24)
+   - [x] `research-worker` (frontmatter 간소화, /decompose 참조 제거)
+   - [x] `analysis-worker` (동일)
+   - [x] `content-worker` (IMI/DBT 브랜드 제거, writing-principles 참조 제거)
+   - [x] `development-worker` (~/.claude/scripts 의존 제거)
+   - [x] `zettelkasten-linker` (PKM 경로 하드코딩 제거, 워크스페이스 상대 경로)
+
+   공통 조정:
+   - 커스텀 frontmatter (hooks, memory, maxTurns, permissionMode, skills) 제거
+   - 표준 필드만 유지 (name, description, model, tools)
+   - `~/.claude/...` 절대 경로 제거
+   - `/decompose` `_parallel/` 파이프라인 참조 제거 (v2 미포함)
 
 4. **제외 (개인 맥락 강한 것)** — 가져가지 말 것
    - `inbound-reply`, `tax-invoice`, `ax-proposal`, `ax-check`, `ax-solution-architect`
