@@ -1,8 +1,6 @@
-# Do Better Workspace 가이드
+바# Do Better Workspace 가이드
 
-> Claude Code + Johnny Decimal 기반 PKM 워크스페이스.
-> 이 파일은 Claude Code가 매 세션 시작 시 자동으로 읽는 프로젝트 지침입니다.
-> 본인 프로필(이름, 역할, 관심사)은 이 파일 하단의 "내 프로필" 섹션을 직접 작성하거나 `/setup-workspace` 스킬로 채우세요.
+> Claude Code + Johnny Decimal 기반 PKM 워크스페이스. 업무 자동화 및 데이터 분석.
 
 ## 폴더 구조 (Johnny Decimal)
 
@@ -55,29 +53,48 @@
 - 모든 비텍스트 파일 저장
 - 명명: `[관련노트]_[설명].[ext]`
 
-## Skills 사용
+## 도구 시스템
 
-이 워크스페이스의 `.claude/skills/`에 프로젝트 전용 스킬이 있습니다.
-스킬은 키워드 기반으로 **자동 트리거**됩니다. (수동 슬래시 커맨드 아님)
+### Skills (`.claude/skills/`)
 
-예: "오늘 daily note 만들어줘" → `daily-note` 스킬 자동 실행
-예: "할 일 추가해줘" → `todo` 스킬 자동 실행
+키워드 기반 **자동 트리거** — 수동 슬래시 커맨드 아님.
 
-## Agents 사용
+| 카테고리 | 스킬 | 트리거 예시 |
+|---------|------|-----------|
+| 일상 | `daily-note` | "오늘 daily note", "하루 기록" |
+| 일상 | `todo` / `todos` | "할 일 추가", "오늘 할 일 보여줘" |
+| 일상 | `weekly-synthesis` | "주간 정리", "이번 주 회고" |
+| 데이터 | `ops-data-analysis` | "매출 분석", "영업 실적", "운영 데이터" |
+| 데이터 | `excel-to-csv` | "엑셀 변환", "xlsx 변환" |
+| 데이터 | `pdf-to-md` | "PDF 변환", "PDF 마크다운으로" |
+| 지식 | `wiki-ingest` | "위키 업데이트", "wiki-ingest" |
+| 지식 | `thinking-partner` | "같이 생각해보자", "브레인스토밍" |
+| 기획 | `dashboard-prd` | "대시보드 PRD", "대시보드 기획" |
+| 협업 | `notion-handler` | "노션", "DB 만들어" |
 
-`.claude/agents/`에 서브에이전트가 있습니다. 복잡한 작업을 Claude가 자동으로 위임하거나, 명시적으로 "research-worker로 조사해줘" 같이 호출할 수 있습니다.
+### Agents (`.claude/agents/`)
+
+복잡한 작업을 Claude가 자동 위임. 명시적 호출: "research-worker로 조사해줘"
+
+### MCP 서버 (`.mcp.json`)
+
+| 서버명 | 엔드포인트 | 비고 |
+|--------|-----------|------|
+| `royal-mcp` | `http://192.168.7.77:8080/mcp` | 로얄앤컴퍼니 사내 서버, Bearer 토큰 인증 |
+
+- 연결 확인: `/mcp` 명령 · Claude Code 재시작 시 자동 활성화
 
 ---
 
 ## 내 프로필
 
-> 이 섹션을 직접 작성하거나, Claude에게 "워크스페이스 세팅해줘"라고 말하면 `setup-workspace` 스킬이 자동 실행되어 채워줍니다. 같은 스킬이 Python venv·선택 도구(git/gws) 세팅도 안내합니다.
+**이름**: 양혁
+**역할**: 로얄앤컴퍼니 정보관리팀 부장
+**관심사**: AI 활용
+**이 워크스페이스 용도**: 업무 자동화 및 데이터 분석
 
-**이름**:
-**역할**:
-**관심사**:
-**이 워크스페이스 용도**:
+_작성일: 2026-05-13_
 
 ---
 
-**Last Updated**: 2026-04-24
+**Last Updated**: 2026-05-20

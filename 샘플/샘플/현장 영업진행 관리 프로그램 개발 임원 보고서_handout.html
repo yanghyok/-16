@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>현장 영업진행 관리 프로그램 개발 보고</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<style>
+:root {
+  --color-bg: #FFFFFF;
+  --color-bg-dark: #111111;
+  --color-bg-muted: #F5F5F5;
+  --color-text: #111111;
+  --color-text-light: #FFFFFF;
+  --color-text-muted: #666666;
+  --color-border: #E0E0E0;
+  --font-sans: 'Pretendard', 'Helvetica Neue', -apple-system, sans-serif;
+  --font-mono: 'SF Mono', 'Menlo', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+@page { size: A4; margin: 0; }
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: #888;
+  line-height: 1.6;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Page */
+.page {
+  width: 210mm; height: 297mm;
+  padding: 18mm 20mm 20mm 20mm;
+  margin: 10px auto;
+  background: var(--color-bg);
+  position: relative; overflow: hidden;
+  page-break-after: always; page-break-inside: avoid;
+}
+@media print { body { background: white; } .page { margin: 0; box-shadow: none; } }
+@media screen { .page { box-shadow: 0 4px 20px rgba(0,0,0,0.2); } }
+
+/* Cover */
+.cover {
+  width: 210mm; height: 297mm;
+  background: var(--color-bg-dark); color: var(--color-text-light);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 24mm; margin: 10px auto;
+  position: relative; overflow: hidden;
+  page-break-after: always;
+}
+@media screen { .cover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); } }
+@media print { .cover { margin: 0; box-shadow: none; } }
+.cover-label { font-family: var(--font-mono); font-size: 8pt; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.4; margin-bottom: 12mm; }
+.cover-title { font-size: 28pt; font-weight: 700; line-height: 1.15; margin-bottom: 5mm; letter-spacing: -0.02em; }
+.cover-title em { font-style: normal; font-weight: 300; }
+.cover-subtitle { font-size: 12pt; font-weight: 300; opacity: 0.7; margin-bottom: 18mm; line-height: 1.5; }
+.cover-meta { display: grid; grid-template-columns: auto 1fr; gap: 2mm 6mm; font-size: 8.5pt; opacity: 0.5; }
+.cover-meta dt { font-family: var(--font-mono); font-size: 7.5pt; letter-spacing: 0.05em; text-transform: uppercase; }
+.cover-meta dd { margin: 0; }
+.cover-brand { position: absolute; bottom: 18mm; left: 24mm; font-size: 10pt; font-weight: 600; letter-spacing: 0.05em; }
+
+/* Page Header / Footer */
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10mm; padding-bottom: 3mm; border-bottom: 1pt solid var(--color-border); }
+.page-brand { font-size: 8pt; font-weight: 600; opacity: 0.3; letter-spacing: 0.1em; }
+.page-number { font-family: var(--font-mono); font-size: 7pt; letter-spacing: 0.1em; opacity: 0.3; }
+.page-footer { position: absolute; bottom: 12mm; left: 20mm; right: 20mm; display: flex; justify-content: space-between; font-size: 6.5pt; opacity: 0.25; font-family: var(--font-mono); }
+
+/* Typography */
+.section-number { font-family: var(--font-mono); font-size: 6.5pt; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 1.5mm; }
+.section-title { font-size: 16pt; font-weight: 700; line-height: 1.25; margin-bottom: 6mm; color: var(--color-text); letter-spacing: -0.01em; }
+.section-title em { font-weight: 300; font-style: normal; }
+h3 { font-size: 8.5pt; font-weight: 700; margin-bottom: 2.5mm; margin-top: 5mm; color: var(--color-text); }
+h3.first { margin-top: 0; }
+p { font-size: 8pt; line-height: 1.65; margin-bottom: 2.5mm; color: var(--color-text-muted); }
+
+/* Quotes */
+.quote { background: var(--color-bg-dark); color: var(--color-text-light); padding: 4.5mm 5.5mm; border-radius: 1pt; margin: 4mm 0; }
+.quote p { color: var(--color-text-light); margin: 0; font-size: 8pt; line-height: 1.6; }
+.quote-light { background: var(--color-bg-muted); border-left: 2pt solid var(--color-text); padding: 3mm 4mm; margin: 3mm 0; font-size: 8pt; line-height: 1.6; }
+.quote-light p { color: var(--color-text-muted); margin: 0; }
+
+/* Lists */
+ul { padding-left: 5mm; margin-bottom: 2mm; }
+li { font-size: 8pt; line-height: 1.65; margin-bottom: 1mm; color: var(--color-text-muted); }
+li strong { color: var(--color-text); font-weight: 600; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; margin: 3mm 0; font-size: 7.5pt; }
+th { background: var(--color-bg-dark); color: var(--color-text-light); padding: 2.5mm 3mm; text-align: left; font-weight: 600; font-size: 7pt; letter-spacing: 0.05em; }
+td { padding: 2.5mm 3mm; border-bottom: 0.5pt solid var(--color-border); color: var(--color-text-muted); }
+tr:last-child td { border-bottom: none; }
+
+/* Special blocks */
+.dark-inline { background: var(--color-bg-dark); color: var(--color-text-light); margin: 4mm 0; padding: 5mm 6mm; border-radius: 1pt; }
+.dark-inline p { color: rgba(255,255,255,0.8); font-family: var(--font-mono); font-size: 7.5pt; line-height: 2.0; margin: 0; }
+
+/* Divider */
+.divider { height: 0.5pt; background: var(--color-border); margin: 5mm 0; }
+
+/* Closing */
+.closing {
+  width: 210mm; height: 297mm;
+  background: var(--color-bg-dark); color: var(--color-text-light);
+  display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+  padding: 24mm; margin: 10px auto; page-break-after: avoid;
+}
+@media screen { .closing { box-shadow: 0 4px 20px rgba(0,0,0,0.2); } }
+@media print { .closing { margin: 0; box-shadow: none; } }
+.closing-title { font-size: 26pt; font-weight: 700; line-height: 1.2; margin-bottom: 6mm; letter-spacing: -0.02em; }
+.closing-title em { font-weight: 300; font-style: normal; }
+.closing-sub { font-size: 10pt; opacity: 0.4; margin-bottom: 16mm; }
+.closing-info { font-family: var(--font-mono); font-size: 7.5pt; letter-spacing: 0.1em; opacity: 0.3; line-height: 2.2; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-label">Business Report · 2026.06.05</div>
+  <h1 class="cover-title">현장 영업진행<br>관리 프로그램<br><em>개발 보고</em></h1>
+  <p class="cover-subtitle">전산 개발 요청 내용 검토 및 추진 방향 승인</p>
+  <dl class="cover-meta">
+    <dt>Date</dt><dd>2026년 6월 5일</dd>
+    <dt>Dept</dt><dd>전산팀</dd>
+    <dt>To</dt><dd>임원진</dd>
+  </dl>
+  <div class="cover-brand">로얄앤컴퍼니</div>
+</div>
+
+<!-- PAGE 1: Section 1, 2, 3 -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-brand">현장 영업진행 관리 프로그램 개발 보고</div>
+    <div class="page-number">01 / 03</div>
+  </div>
+
+  <div class="section-number">Section 01</div>
+  <h2 class="section-title">보고 <em>개요</em></h2>
+  <table>
+    <tr><th>항목</th><th>내용</th></tr>
+    <tr><td>과제명</td><td>현장 영업진행 관리 프로그램 개발</td></tr>
+    <tr><td>보고 목적</td><td>개발 요청 내용 검토 및 추진 방향 승인</td></tr>
+    <tr><td>개발 납기</td><td>개발 착수 후 1개월 이내</td></tr>
+    <tr><td>사용 부서</td><td>영업담당, 영업지원</td></tr>
+  </table>
+
+  <div class="divider"></div>
+
+  <div class="section-number">Section 02</div>
+  <h2 class="section-title">개발 배경 및 <em>목적</em></h2>
+  <p>현장 영업 과정에서 견적·특가·출고 정보가 분산 관리되어 현황 파악이 어려운 상황입니다. 이를 해소하기 위해 <strong>자동 견적 → 현장 등록 → 승인특가</strong> 흐름을 단일 시스템으로 통합하고, 현장별 영업 진행 현황을 실시간으로 관리할 수 있는 프로그램을 개발합니다.</p>
+
+  <div class="divider"></div>
+
+  <div class="section-number">Section 03</div>
+  <h2 class="section-title">확정된 <em>업무 흐름</em></h2>
+  <div class="dark-inline">
+    <p>① 자동 견적 생성　　　공장도가 기준, 할인율 적용하여 자동 산출</p>
+    <p>　　　　　　　↓</p>
+    <p>② 현장 등록　　　　　현장코드 자동 부여 (지역 코드 + 일련번호 3자리)</p>
+    <p>　　　　　　　↓</p>
+    <p>③ 승인특가 작성　　　현장코드 연동, 특가금액 승인 시점 기준 관리</p>
+    <p>　　　　　　　↓</p>
+    <p>④ 출고 및 현황 관리　현장별 출고내역·금액 조회</p>
+  </div>
+  <div class="quote-light">
+    <p>자동 견적을 거치지 않을 경우 현장 등록은 가능하나 승인특가 작성 불가</p>
+  </div>
+
+  <div class="page-footer">
+    <span>현장 영업진행 관리 프로그램 개발 보고</span>
+    <span>2026.06.05 · CONFIDENTIAL</span>
+  </div>
+</div>
+
+<!-- PAGE 2: Section 4 (4-1 ~ 4-5) -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-brand">현장 영업진행 관리 프로그램 개발 보고</div>
+    <div class="page-number">02 / 03</div>
+  </div>
+
+  <div class="section-number">Section 04</div>
+  <h2 class="section-title">주요 <em>개발 항목</em></h2>
+
+  <h3 class="first">4-1. 현장코드 자동 부여</h3>
+  <ul>
+    <li>형식: 지역 코드 + 일련번호 3자리</li>
+    <li>담당자 변경(인수인계) 시 신규 코드 발급</li>
+    <li>등록 권한: 영업담당, 영업지원</li>
+  </ul>
+
+  <div class="divider"></div>
+
+  <h3>4-2. 승인특가 연동</h3>
+  <ul>
+    <li>승인특가 작성 시 현장코드 입력 → 현장관리 프로그램 자동 연동</li>
+    <li>현장관리 프로그램에서 승인특가 작성 여부, 특가금액, 출고금액 확인 가능</li>
+    <li>금액 기준 시점: 승인 시점</li>
+  </ul>
+
+  <div class="divider"></div>
+
+  <h3>4-3. SPEC OUT 처리</h3>
+  <ul>
+    <li><strong>SPEC OUT 정의:</strong> SPEC 수주 실패 또는 취소된 현장</li>
+    <li>SPEC OUT 확정 시 대체 메이커 및 대체사유 직접 입력 필수</li>
+    <li>확정 처리 권한: 담당자</li>
+  </ul>
+
+  <div class="divider"></div>
+
+  <h3>4-4. 현장관리 써칭 기능</h3>
+  <table>
+    <tr><th>번호</th><th>기능</th></tr>
+    <tr><td>①</td><td>기간별 현장 집계내역</td></tr>
+    <tr><td>②</td><td>기간별 현장 출고내역 및 금액</td></tr>
+    <tr><td>③</td><td>기간별 SPEC OUT 현장 내역</td></tr>
+  </table>
+  <ul>
+    <li>별도 엑셀 다운로드·인쇄 기능 미포함</li>
+  </ul>
+
+  <div class="divider"></div>
+
+  <h3>4-5. 관공서 영업PJ 보고양식</h3>
+  <ul>
+    <li>조회 항목: 현장명, 진행단계, 담당자, 특가 여부, 출고금액</li>
+    <li>출력 형태: 화면 조회</li>
+  </ul>
+
+  <div class="page-footer">
+    <span>현장 영업진행 관리 프로그램 개발 보고</span>
+    <span>2026.06.05 · CONFIDENTIAL</span>
+  </div>
+</div>
+
+<!-- PAGE 3: 4-6, Section 5, 6, 7 -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-brand">현장 영업진행 관리 프로그램 개발 보고</div>
+    <div class="page-number">03 / 03</div>
+  </div>
+
+  <h3 class="first">4-6. 사용자 권한</h3>
+  <table>
+    <tr><th>구분</th><th>권한</th></tr>
+    <tr><td>영업담당</td><td>전체 조회·수정</td></tr>
+    <tr><td>관리자</td><td>전체 조회·수정</td></tr>
+    <tr><td>영업지원</td><td>추가 확인 중</td></tr>
+  </table>
+
+  <div class="divider"></div>
+
+  <div class="section-number">Section 05</div>
+  <h2 class="section-title">미확정 사항 <em>(착수 전 확인 필요)</em></h2>
+  <table>
+    <tr><th>#</th><th>항목</th><th>확인 필요 내용</th></tr>
+    <tr><td>1</td><td>현장코드 지역 코드표</td><td>지역별 코드값 목록 (예: 서울=SE, 부산=BS 등)</td></tr>
+    <tr><td>2</td><td>SPEC OUT 확정 후 수정 여부</td><td>확정 후 수정 허용 여부 및 수정 권한자</td></tr>
+    <tr><td>3</td><td>영업지원 권한 범위</td><td>조회만 가능한지, 일부 수정도 가능한지</td></tr>
+  </table>
+  <div class="quote-light">
+    <p>위 3건은 개발 착수 전 요청 부서 재확인 후 확정 필요</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-number">Section 06</div>
+  <h2 class="section-title">추진 <em>일정 (안)</em></h2>
+  <table>
+    <tr><th>단계</th><th>내용</th><th>기간</th></tr>
+    <tr><td>요건 확정</td><td>미확정 3건 확인 및 요건 최종 확정</td><td>착수 전</td></tr>
+    <tr><td>개발</td><td>6개 기능 개발</td><td>착수 후 3주</td></tr>
+    <tr><td>테스트</td><td>기능 검증 및 사용자 확인</td><td>4주차</td></tr>
+    <tr><td>오픈</td><td>운영 전환</td><td>착수 후 1개월 이내</td></tr>
+  </table>
+
+  <div class="divider"></div>
+
+  <div class="section-number">Section 07</div>
+  <h2 class="section-title">건의 <em>사항</em></h2>
+  <p>미확정 3건을 조속히 확정하여 개발 착수 시점을 확보할 것을 건의드립니다. 특히 현장코드 지역 코드표는 데이터베이스 설계에 직접 영향을 미치므로 우선 확정이 필요합니다.</p>
+
+  <div class="page-footer">
+    <span>현장 영업진행 관리 프로그램 개발 보고</span>
+    <span>2026.06.05 · CONFIDENTIAL</span>
+  </div>
+</div>
+
+<!-- CLOSING -->
+<div class="closing">
+  <div class="closing-title">현장 영업진행<br>관리 프로그램<br><em>개발 보고</em></div>
+  <div class="closing-sub">추진 방향 승인 요청</div>
+  <div class="closing-info">
+    로얄앤컴퍼니 · 전산팀<br>
+    2026.06.05<br>
+    CONFIDENTIAL
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+﻿탭,행수,용도,관련 반복 루틴
+README,1,이 시트 (탭 구조 안내),—
+sales_daily,9011,일별 매출 (B2B/공식몰/쿠팡/네이버/SSG),매일 아침 브리핑
+as_received,2101,AS 접수 현황,매일 아침 브리핑
+customers,90,거래처 마스터,마스터 (조회)
+products,150,제품 마스터,마스터 (조회)
+dealer_settlement,624,위탁업체 정산,매월 초 정산 검증
+card_payment,790,카드사 입금,매일 아침 브리핑
+sales_rep_targets,130,영업사원 약정·달성,매주 월요일 영업 점검
+inbound_inventory,824,외주 입고 (수불부),매월 초 정산 검증

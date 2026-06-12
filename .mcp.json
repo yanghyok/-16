@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "royal-ms365-mcp": {
+      "type": "stdio",
+      "command": "C:\\royal-ms365-mcp\\.venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\royal-ms365-mcp\\server.py"
+      ],
+      "env": {
+        "MCP_SERVER_NAME": "royal-ms365-mcp",
+        "TENANT_ID": "8f31f09d-e3f8-4639-a43f-3ed4f91fd10f",
+        "CLIENT_ID": "b7e754ad-8ee4-4482-8074-7ce1b1ec57d2",
+        "MS365_TOKEN_CACHE_PATH": "C:\\Users\\HRD1\\do-better-workspace-v2\\.royal-ms365-mcp\\token_cache.bin",
+        "MS365_AUTO_AUTH": "false"
+      }
+    }
+  }
+}

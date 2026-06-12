@@ -1,0 +1,58 @@
+1.                                                                                
+ Message ID . . . . . . :   CPA4088       Severity . . . . . . . :   99         
+ Message type . . . . . :   Inquiry                                             
+ Date sent  . . . . . . :   26/06/01      Time sent  . . . . . . :   03:08:14   
+                                                                                
+ Message . . . . :   Load next tape volume on device TAP01. (C G)               
+ Cause . . . . . :   The end of the tape volume has been reached.               
+ Recovery  . . . :   Type C to cancel processing, or put the next tape volume   
+   on device TAP01 and type G to continue processing.                           
+ Possible choices for replying to message . . . . . . . . . . . . . . . :       
+   G -- Continue processing.                                                    
+   C -- Cancel processing.                                                      
+
+2.
+Message ID . . . . . . :   CPI1466       Severity . . . . . . . :   60         
+Message type . . . . . :   Information                                         
+Date sent  . . . . . . :   26/06/02      Time sent  . . . . . . :   03:00:20   
+                                                                               
+Message . . . . :   Job holds large number of locks.                           
+Cause . . . . . :   The job 745570/XHYH/SAVLIB has 30000 locks.  30000 is a    
+  suspiciously large number of locks, and it indicates that an application may 
+  be leaving locks behind.                                                     
+Recovery  . . . :   Determine whether the locks are correct for the            
+  application.  To do this:                                                    
+                                                                               
+    1. Display the job's locks using the Work with Job (WRKJOB) command with   
+  job name SAVLIB, user XHYH, job number 745570, and option *JOBLCK.           
+      NOTES:                                                                   
+      - WRKJOB may take longer because of the large number of locks involved.  
+      - WRKJOB is usable only if the job is still active.                      
+     2. On the Work with Job display, verify:                                
+       a. Which objects are locked.                                          
+       b. How many locks each object has.                                    
+       c. The type of locks involved.                                        
+     3. If the locks are correct, ignore this message.                       
+     4. If the locks are not correct, fix the application that acquired the  
+   locks.  If the problem appears to be in IBM system code, use the Analyze  
+   Problem (ANZPRB) command to report the problem to IBM. To release the     
+   existing locks, end the job.                                              
+
+3.
+ Message ID . . . . . . :   CPF7019       Severity . . . . . . . :   00         
+ Message type . . . . . :   Information                                         
+ Date sent  . . . . . . :   26/06/02      Time sent  . . . . . . :   04:24:23   
+                                                                                
+ Message . . . . :   Sequence number not reset. First sequence number is        
+   39151833266.                                                                 
+ Cause . . . . . :   A journal receiver was attached to journal QDBJRNXRFQ in   
+   library QRECOVERY in Auxilary Storage Pool (ASP) group *N without resetting  
+   the sequence number.  39151833266 is the first sequence number in the        
+   attached receiver.                                                           
+ Recovery  . . . :   If the first sequence number in the new journal receiver   
+   exceeds 18446600000000000000, then request another Change Journal (CHGJRN)   
+   to change journal receiver, specifying SEQOPT(*RESET) to reset the sequence  
+   numbers in the new journal receiver.  If the sequence number exceeds the     
+   largest sequence number, 18446744073709551600, no more entries can be added  
+   to the journal until the journal receiver is changed and the sequence        
+   numbers reset.

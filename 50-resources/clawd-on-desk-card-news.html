@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clawd on Desk 카드뉴스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 40px 20px;
+  }
+
+  .card {
+    width: 600px;
+    height: 600px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  /* 카드 1 - 표지 */
+  .card-1 {
+    background: linear-gradient(135deg, #CC785C 0%, #E8956D 50%, #F5B49A 100%);
+    color: white;
+  }
+  .card-1 .duck {
+    font-size: 96px;
+    margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  .card-1 h1 {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .card-1 p {
+    font-size: 16px;
+    opacity: 0.9;
+    font-weight: 400;
+  }
+  .card-1 .badge {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .card-num {
+    position: absolute;
+    bottom: 20px;
+    right: 24px;
+    font-size: 13px;
+    opacity: 0.6;
+    font-weight: 500;
+  }
+
+  /* 카드 2 - 소개 */
+  .card-2 {
+    background: linear-gradient(135deg, #2d2d44 0%, #3d3d5c 100%);
+    color: white;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .card-2 .tag {
+    background: #CC785C;
+    color: white;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+  .card-2 h2 {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 24px;
+    color: #F5B49A;
+  }
+  .card-2 .desc {
+    font-size: 17px;
+    line-height: 1.8;
+    opacity: 0.88;
+  }
+  .card-2 .highlight {
+    background: rgba(204,120,92,0.25);
+    border-left: 3px solid #CC785C;
+    padding: 14px 18px;
+    border-radius: 0 10px 10px 0;
+    margin-top: 20px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #F5CDB8;
+  }
+
+  /* 카드 3 - 특징 */
+  .card-3 {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 100%);
+    color: white;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .card-3 .tag {
+    background: #4A90D9;
+    color: white;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .card-3 h2 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 28px;
+    color: #AED6F1;
+  }
+  .feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .feature-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .feature-text strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #AED6F1;
+  }
+  .feature-text span {
+    font-size: 14px;
+    opacity: 0.8;
+    line-height: 1.5;
+  }
+
+  /* 카드 4 - 설치 */
+  .card-4 {
+    background: linear-gradient(135deg, #1a3a2a 0%, #2d6a4f 100%);
+    color: white;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .card-4 .tag {
+    background: #52B788;
+    color: white;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .card-4 h2 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 28px;
+    color: #B7E4C7;
+  }
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .step-num {
+    width: 36px;
+    height: 36px;
+    background: #52B788;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .step-text strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    color: #B7E4C7;
+  }
+  .step-text span {
+    font-size: 13px;
+    opacity: 0.75;
+    line-height: 1.4;
+  }
+  .step-text code {
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #95D5B2;
+  }
+
+  /* 카드 5 - 마무리 */
+  .card-5 {
+    background: linear-gradient(135deg, #CC785C 0%, #9B4F34 100%);
+    color: white;
+  }
+  .card-5 .duck-row {
+    font-size: 48px;
+    margin-bottom: 24px;
+    letter-spacing: 8px;
+  }
+  .card-5 h2 {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.4;
+    margin-bottom: 16px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .card-5 p {
+    font-size: 16px;
+    opacity: 0.9;
+    line-height: 1.7;
+    margin-bottom: 28px;
+  }
+  .card-5 .cta {
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 50px;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.5px;
+  }
+  .card-5 .version {
+    position: absolute;
+    bottom: 20px;
+    font-size: 13px;
+    opacity: 0.55;
+  }
+
+  .page-title {
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<p class="page-title">카드뉴스 · 클로드 온 데스크</p>
+
+<!-- 카드 1: 표지 -->
+<div class="card card-1">
+  <span class="badge">🆕 신규</span>
+  <div class="duck">🦆</div>
+  <h1>바탕화면에<br>AI 친구가 생겼어요!</h1>
+  <p>Clawd on Desk — 클로드 펫과 함께하는 하루</p>
+  <span class="card-num">1 / 5</span>
+</div>
+
+<!-- 카드 2: 소개 -->
+<div class="card card-2">
+  <span class="tag">소개</span>
+  <h2>Clawd on Desk란?</h2>
+  <p class="desc">
+    바탕화면 위를 자유롭게 돌아다니는<br>
+    <strong>AI 캐릭터 앱</strong>입니다.<br><br>
+    귀여운 클로드 러버덕이 화면 위에서<br>
+    함께 일상을 함께해요.
+  </p>
+  <div class="highlight">
+    💡 오늘 클로드 2회차 교육에서<br>
+    염서우님이 사내 공유한 앱입니다!
+  </div>
+  <span class="card-num" style="color:rgba(255,255,255,0.4)">2 / 5</span>
+</div>
+
+<!-- 카드 3: 특징 -->
+<div class="card card-3">
+  <span class="tag">주요 특징</span>
+  <h2>주요 특징 3가지</h2>
+  <div class="feature-list">
+    <div class="feature-item">
+      <span class="feature-icon">🖥️</span>
+      <div class="feature-text">
+        <strong>항상 화면 위에</strong>
+        <span>모든 앱 위에 떠 있어 언제나 보여요</span>
+      </div>
+    </div>
+    <div class="feature-item">
+      <span class="feature-icon">🦆</span>
+      <div class="feature-text">
+        <strong>자유롭게 움직이는 클로드</strong>
+        <span>바탕화면을 혼자 걸어다니는 귀여운 러버덕</span>
+      </div>
+    </div>
+    <div class="feature-item">
+      <span class="feature-icon">⚡</span>
+      <div class="feature-text">
+        <strong>가볍고 빠른 설치</strong>
+        <span>설치 파일 하나로 바로 실행</span>
+      </div>
+    </div>
+  </div>
+  <span class="card-num" style="color:rgba(255,255,255,0.4)">3 / 5</span>
+</div>
+
+<!-- 카드 4: 설치 방법 -->
+<div class="card card-4">
+  <span class="tag">설치 방법</span>
+  <h2>설치 방법</h2>
+  <div class="step-list">
+    <div class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        <strong>Teams 채팅 링크 클릭</strong>
+        <span>AI Claude 교육관련 채팅방에서 공유된 링크 접속</span>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        <strong>설치 파일 다운로드</strong>
+        <span><code>Clawd-on-Desk-Setup-0.7.1-x64.exe</code> 다운로드</span>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        <strong>실행</strong>
+        <span>설치 파일 실행 후 바탕화면에서 클로드 확인!</span>
+      </div>
+    </div>
+  </div>
+  <span class="card-num" style="color:rgba(255,255,255,0.4)">4 / 5</span>
+</div>
+
+<!-- 카드 5: 마무리 -->
+<div class="card card-5">
+  <div class="duck-row">🦆🦆🦆</div>
+  <h2>오늘부터 클로드와<br>함께 일해보세요!</h2>
+  <p>
+    바탕화면을 걸어다니는 클로드와 함께<br>
+    더 즐거운 업무 환경을 만들어 보세요.
+  </p>
+  <div class="cta">Teams에서 링크 받기 →</div>
+  <span class="version">Clawd on Desk v0.7.1 · 로얄앤컴퍼니 AI 교육팀</span>
+</div>
+
+</body>
+</html>

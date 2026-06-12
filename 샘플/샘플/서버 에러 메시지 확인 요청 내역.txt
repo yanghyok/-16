@@ -1,0 +1,11 @@
+1. 다음과 같은 메시지가 뜹니다
+   2026.06.01 03:08:14에 백업 시 Load next tape volume on device TAP01. (C G) 발생
+   확인 좀 해 주세요.
+
+2. 다음과 같은 메시지가 뜹니다
+   2026.06.02 04:24:23에 Job holds large number of locks. 발생.
+    내용 확인 좀 해 주세요
+
+3. 다음과 같은 메시지가 뜹니다
+   2026.06.02 04:24:23에 Sequence number not reset. First sequence number is 39151833266. 발생
+  서버에 영향이 없는지 확인 좀 해 주세요
