@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>일정관리 대시보드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<style>
+:root {
+  --slate-50:#f8fafc; --slate-100:#f1f5f9; --slate-200:#e2e8f0; --slate-300:#cbd5e1;
+  --slate-400:#94a3b8; --slate-500:#64748b; --slate-600:#475569; --slate-700:#334155;
+  --slate-800:#1e293b; --slate-900:#0f172a;
+  --danger:#dc2626; --danger-soft:#fef2f2; --danger-bd:#fecaca;
+  --warn:#d97706; --warn-soft:#fffbeb; --warn-bd:#fde68a;
+  --ok:#16a34a; --ok-soft:#f0fdf4; --ok-bd:#bbf7d0;
+  --accent:#4f46e5; --accent-soft:#eef2ff;
+  --bg:#f1f5f9; --card:#ffffff; --bd:#e9edf3;
+  --radius:14px; --shadow:0 1px 2px rgba(15,23,42,.04), 0 4px 16px -8px rgba(15,23,42,.10);
+  --mono:'SFMono-Regular',ui-monospace,'JetBrains Mono',Menlo,monospace;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html,body { height:100%; }
+body {
+  font-family:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;
+  background:var(--bg); color:var(--slate-800);
+  -webkit-font-smoothing:antialiased; letter-spacing:-.01em;
+}
+.num, .meter-nums, .bc-val, .kpi-value, .delay-days { font-variant-numeric:tabular-nums; }
+
+/* ===== Layout ===== */
+.app { display:flex; height:100vh; overflow:hidden; }
+.sidebar {
+  width:248px; flex:0 0 248px; background:var(--slate-900); color:var(--slate-300);
+  display:flex; flex-direction:column; padding:22px 16px;
+}
+.brand { display:flex; align-items:center; gap:11px; padding:4px 6px 22px; }
+.brand-mark {
+  width:38px; height:38px; border-radius:10px; background:var(--accent);
+  color:#fff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; letter-spacing:-.02em;
+}
+.brand-txt { display:flex; flex-direction:column; gap:2px; }
+.brand-name { color:#fff; font-weight:700; font-size:14.5px; white-space:nowrap; }
+.brand-mark { flex:0 0 38px; }
+.brand-sub { color:var(--slate-500); font-size:11.5px; }
+.nav { display:flex; flex-direction:column; gap:3px; flex:1; }
+.nav-label { color:var(--slate-600); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; padding:6px 10px; }
+.nav-item {
+  display:flex; align-items:center; gap:11px; padding:10px 11px; border:none; border-radius:9px;
+  background:transparent; color:var(--slate-400); font-size:13.5px; font-weight:500; cursor:pointer;
+  font-family:inherit; text-align:left; transition:all .15s; letter-spacing:-.01em; white-space:nowrap;
+}
+.nav-item svg { flex:0 0 auto; }
+.nav-item:hover { background:rgba(255,255,255,.05); color:var(--slate-200); }
+.nav-item.active { background:var(--accent); color:#fff; box-shadow:0 4px 14px -4px rgba(79,70,229,.6); }
+.side-foot { border-top:1px solid rgba(255,255,255,.07); padding-top:16px; }
+.update-box { display:flex; align-items:center; gap:9px; color:var(--slate-400); padding:0 6px; }
+.update-box > div { display:flex; flex-direction:column; }
+.upd-label { font-size:10.5px; color:var(--slate-500); }
+.upd-time { font-size:12.5px; color:var(--slate-200); font-weight:600; font-variant-numeric:tabular-nums; }
+.side-note { font-size:10.5px; color:var(--slate-600); line-height:1.5; padding:11px 6px 0; }
+
+.main { flex:1; display:flex; flex-direction:column; min-width:0; }
+.topbar {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:22px 30px 18px; background:var(--card); border-bottom:1px solid var(--bd);
+}
+.page-title { font-size:21px; font-weight:750; color:var(--slate-900); letter-spacing:-.02em; }
+.page-desc { font-size:13px; color:var(--slate-500); margin-top:4px; }
+.top-meta { display:flex; gap:8px; }
+.meta-chip {
+  display:flex; align-items:center; gap:6px; font-size:12px; color:var(--slate-600);
+  background:var(--slate-100); border:1px solid var(--bd); padding:7px 12px; border-radius:8px; font-weight:500;
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.scroll { flex:1; overflow-y:auto; padding:22px 30px 40px; }
+
+/* ===== AI Banner ===== */
+.ai-banner {
+  display:flex; align-items:center; gap:14px; padding:15px 18px; border-radius:var(--radius);
+  margin-bottom:18px; border:1px solid; position:relative;
+}
+.ai-banner.ai-anomaly { background:var(--danger-soft); border-color:var(--danger-bd); }
+.ai-banner.ai-trend { background:var(--warn-soft); border-color:var(--warn-bd); }
+.ai-banner.ai-opp { background:var(--accent-soft); border-color:#c7d2fe; }
+.ai-spark { width:36px; height:36px; flex:0 0 36px; border-radius:9px; display:flex; align-items:center; justify-content:center; color:#fff; }
+.ai-anomaly .ai-spark { background:var(--danger); }
+.ai-trend .ai-spark { background:var(--warn); }
+.ai-opp .ai-spark { background:var(--accent); }
+.ai-body { flex:1; min-width:0; }
+.ai-head { display:flex; align-items:center; gap:9px; margin-bottom:3px; }
+.ai-spark { flex:0 0 36px; }
+.ai-title { font-size:12px; font-weight:700; color:var(--slate-700); letter-spacing:.01em; white-space:nowrap; }
+.ai-tag { font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:20px; background:rgba(255,255,255,.7); color:var(--slate-600); border:1px solid rgba(0,0,0,.05); white-space:nowrap; }
+.ai-nav { flex:0 0 auto; }
+.ai-text { font-size:13.5px; color:var(--slate-800); line-height:1.45; font-weight:500; }
+.ai-nav { display:flex; align-items:center; gap:6px; }
+.ai-count { font-size:11.5px; color:var(--slate-500); font-variant-numeric:tabular-nums; margin-right:2px; }
+.ai-btn { width:28px; height:28px; border-radius:7px; border:1px solid rgba(0,0,0,.08); background:rgba(255,255,255,.8); color:var(--slate-600); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.ai-btn:hover { background:#fff; color:var(--slate-900); }
+
+/* ===== Filter Bar ===== */
+.filterbar { display:flex; align-items:center; gap:18px; padding:13px 16px; background:var(--card); border:1px solid var(--bd); border-radius:12px; margin-bottom:18px; flex-wrap:wrap; }
+.fb-icon { color:var(--slate-400); display:flex; }
+.fb-group { display:flex; align-items:center; gap:8px; }
+.fb-group label { font-size:12px; font-weight:600; color:var(--slate-500); white-space:nowrap; }
+.fb-group select {
+  font-family:inherit; font-size:13px; color:var(--slate-800); font-weight:500;
+  padding:7px 30px 7px 11px; border:1px solid var(--slate-200); border-radius:8px; background:var(--slate-50);
+  cursor:pointer; appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center;
+}
+.fb-group select:hover { border-color:var(--slate-300); }
+.toggle2 { display:flex; background:var(--slate-100); border-radius:8px; padding:3px; gap:2px; }
+.toggle2 button { font-family:inherit; font-size:12.5px; font-weight:600; color:var(--slate-500); border:none; background:transparent; padding:5px 13px; border-radius:6px; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.toggle2 button.on { background:#fff; color:var(--slate-900); box-shadow:0 1px 3px rgba(0,0,0,.1); }
+.fb-clear { margin-left:auto; display:flex; align-items:center; gap:5px; font-family:inherit; font-size:12px; font-weight:600; color:var(--slate-500); background:transparent; border:none; cursor:pointer; padding:6px 8px; border-radius:7px; }
+.fb-clear:hover { background:var(--slate-100); color:var(--slate-800); }
+
+/* ===== KPI ===== */
+.kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:18px; }
+.kpi { background:var(--card); border:1px solid var(--bd); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.kpi::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--slate-300); }
+.kpi.tone-danger::before { background:var(--danger); }
+.kpi.tone-warn::before { background:var(--warn); }
+.kpi-top { display:flex; align-items:center; gap:9px; margin-bottom:13px; }
+.kpi-icon { width:30px; height:30px; border-radius:8px; background:var(--slate-100); color:var(--slate-500); display:flex; align-items:center; justify-content:center; }
+.tone-danger .kpi-icon { background:var(--danger-soft); color:var(--danger); }
+.tone-warn .kpi-icon { background:var(--warn-soft); color:var(--warn); }
+.kpi-label { font-size:13px; font-weight:600; color:var(--slate-600); white-space:nowrap; }
+.kpi-icon { flex:0 0 30px; }
+.kpi-value { font-size:34px; font-weight:780; color:var(--slate-900); line-height:1; letter-spacing:-.03em; }
+.kpi-unit { font-size:16px; font-weight:600; color:var(--slate-400); margin-left:3px; letter-spacing:0; }
+.kpi-foot { display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap; }
+.kpi-sub { font-size:12px; color:var(--slate-500); white-space:nowrap; }
+.kpi-delta { display:inline-flex; align-items:center; gap:3px; font-size:11.5px; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap; }
+.kpi-delta.good { background:var(--ok-soft); color:var(--ok); }
+.kpi-delta.bad { background:var(--danger-soft); color:var(--danger); }
+.kpi-delta.flat { background:var(--slate-100); color:var(--slate-500); }
+.kpi-delta-lbl { font-weight:500; opacity:.75; }
+
+/* ===== Cards / grid ===== */
+.grid-2 { display:grid; grid-template-columns:1fr; gap:16px; }
+.card { background:var(--card); border:1px solid var(--bd); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 20px 20px; }
+.card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:16px; }
+.card-title { font-size:15.5px; font-weight:700; color:var(--slate-900); letter-spacing:-.01em; }
+.card-sub { font-size:12px; color:var(--slate-500); margin-top:3px; }
+.seg { display:flex; gap:2px; background:var(--slate-100); padding:3px; border-radius:8px; }
+.seg-btn { font-family:inherit; font-size:11.5px; font-weight:600; color:var(--slate-500); border:none; background:transparent; padding:5px 10px; border-radius:6px; cursor:pointer; white-space:nowrap; transition:all .15s; }
+.seg-btn.active { background:#fff; color:var(--slate-900); box-shadow:0 1px 3px rgba(0,0,0,.1); }
+
+/* ===== Table ===== */
+.table-wrap { overflow-x:auto; margin:0 -20px -8px; }
+.dtable { width:100%; border-collapse:collapse; font-size:13px; }
+.dtable thead th {
+  text-align:left; font-size:11px; font-weight:700; color:var(--slate-500); text-transform:uppercase; letter-spacing:.04em;
+  padding:9px 14px; border-bottom:1px solid var(--bd); white-space:nowrap; background:var(--slate-50);
+}
+.dtable th.num, .dtable td.num { text-align:right; }
+.dtable th:first-child { padding-left:20px; } .dtable th:last-child { padding-right:20px; }
+.dtable td:first-child { padding-left:20px; } .dtable td:last-child { padding-right:20px; }
+.dtable tbody td { padding:11px 14px; border-bottom:1px solid var(--slate-100); color:var(--slate-700); vertical-align:middle; }
+.dtable tbody tr:hover { background:var(--slate-50); }
+.dtable tbody tr.row-delayed { background:linear-gradient(90deg, rgba(220,38,38,.035), transparent 60%); }
+.dtable tbody tr.row-delayed:hover { background:linear-gradient(90deg, rgba(220,38,38,.06), var(--slate-50) 60%); }
+.proj { min-width:200px; }
+.dept-tag { display:inline-block; font-size:10.5px; font-weight:700; color:var(--accent); background:var(--accent-soft); padding:2px 7px; border-radius:5px; margin-right:8px; vertical-align:middle; white-space:nowrap; }
+.dtable td:nth-child(3) { white-space:nowrap; }
+.dept-tag.sm { margin-right:6px; }
+.proj-name { font-weight:600; color:var(--slate-800); }
+.meter-col { min-width:170px; width:190px; }
+.delay-days { color:var(--danger); font-weight:700; }
+.overdue-flag { display:inline-block; margin-left:6px; font-size:10px; font-weight:700; color:var(--danger); background:var(--danger-soft); padding:1px 6px; border-radius:4px; }
+.warn-flag { display:inline-block; margin-left:6px; font-size:10px; font-weight:700; color:var(--warn); background:var(--warn-soft); padding:1px 6px; border-radius:4px; }
+.reason { font-size:12.5px; color:var(--slate-600); }
+.muted { color:var(--slate-400); }
+
+/* ===== Badge ===== */
+.badge { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:3px 9px 3px 7px; border-radius:20px; white-space:nowrap; border:1px solid; }
+.badge-dot { width:6px; height:6px; border-radius:50%; }
+.st-delayed { color:var(--danger); background:var(--danger-soft); border-color:var(--danger-bd); }
+.st-delayed .badge-dot { background:var(--danger); }
+.st-warn { color:var(--warn); background:var(--warn-soft); border-color:var(--warn-bd); }
+.st-warn .badge-dot { background:var(--warn); }
+.st-normal { color:var(--slate-600); background:var(--slate-100); border-color:var(--slate-200); }
+.st-normal .badge-dot { background:var(--slate-400); }
+.st-done { color:var(--ok); background:var(--ok-soft); border-color:var(--ok-bd); }
+.st-done .badge-dot { background:var(--ok); }
+
+/* ===== Meter ===== */
+.meter { width:100%; }
+.meter-track { position:relative; height:7px; background:var(--slate-150,#eef1f6); border-radius:6px; overflow:visible; }
+.meter-fill { height:100%; border-radius:6px; transition:width .3s; }
+.meter-expected { position:absolute; top:-3px; width:2px; height:13px; background:var(--slate-700); border-radius:2px; transform:translateX(-1px); }
+.meter-expected::after { content:''; position:absolute; top:-3px; left:50%; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:var(--slate-700); }
+.meter-nums { display:flex; justify-content:space-between; margin-top:5px; font-size:11px; }
+.meter-actual { font-weight:700; color:var(--slate-700); }
+.meter-exp { color:var(--slate-400); }
+
+/* ===== Reason bars ===== */
+.rbars { display:flex; flex-direction:column; gap:11px; }
+.rbar-row { display:grid; grid-template-columns:84px 1fr 22px; align-items:center; gap:12px; }
+.rbar-label { font-size:12.5px; font-weight:600; color:var(--slate-700); text-align:right; }
+.rbar-label.muted { color:var(--slate-400); font-weight:500; }
+.rbar-track { height:10px; background:var(--slate-100); border-radius:6px; overflow:hidden; }
+.rbar-fill { height:100%; background:linear-gradient(90deg,var(--danger),#ef4444); border-radius:6px; transition:width .35s; }
+.rbar-count { font-size:13px; font-weight:700; color:var(--slate-700); text-align:right; font-variant-numeric:tabular-nums; }
+.legend { display:flex; flex-wrap:wrap; gap:14px; margin-top:18px; padding-top:14px; border-top:1px solid var(--slate-100); }
+.legend.inline { margin:0; padding:0; border:none; }
+.lg-item { display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--slate-500); font-weight:500; white-space:nowrap; }
+.legend.inline { flex-wrap:nowrap; }
+.lg-dot { width:9px; height:9px; border-radius:50%; }
+.lg-dot.st-delayed { background:var(--danger); } .lg-dot.st-warn { background:var(--warn); }
+.lg-dot.st-normal { background:var(--slate-400); } .lg-dot.st-done { background:var(--ok); }
+.lg-box { width:11px; height:11px; border-radius:3px; }
+.lg-box.total { background:var(--slate-300); } .lg-box.delayed { background:var(--danger); }
+.empty { font-size:13px; color:var(--slate-400); padding:20px 0; text-align:center; }
+
+/* ===== Bar compare (View2) ===== */
+.bcompare { display:flex; flex-direction:column; gap:6px; }
+.bc-block { border-bottom:1px solid var(--slate-100); }
+.bc-block:last-child { border-bottom:none; }
+.bc-row { width:100%; display:grid; grid-template-columns:96px 1fr 44px; align-items:center; gap:14px; padding:11px 4px; background:transparent; border:none; cursor:pointer; font-family:inherit; text-align:left; border-radius:8px; transition:background .15s; }
+.bc-row:hover { background:var(--slate-50); }
+.bc-row.open { background:var(--slate-50); }
+.bc-name { display:flex; align-items:center; gap:6px; font-size:13.5px; font-weight:600; color:var(--slate-800); }
+.bc-bars { display:flex; flex-direction:column; gap:4px; }
+.bc-bar { height:14px; border-radius:4px; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; min-width:22px; transition:width .35s; }
+.bc-bar.total { background:var(--slate-300); }
+.bc-bar.delayed { background:var(--danger); }
+.bc-val { font-size:10.5px; font-weight:700; color:#fff; }
+.bc-bar.total .bc-val { color:var(--slate-700); }
+.bc-ratio { font-size:13px; font-weight:700; color:var(--danger); text-align:right; font-variant-numeric:tabular-nums; }
+.drill { padding:4px 4px 14px 18px; display:flex; flex-direction:column; gap:2px; }
+.drill-row { display:grid; grid-template-columns:54px 1fr 180px 64px; align-items:center; gap:12px; padding:8px 10px; border-radius:8px; background:#fff; border:1px solid var(--slate-100); }
+.drill-proj { font-size:12.5px; font-weight:500; color:var(--slate-700); }
+.drill-delay { text-align:right; font-size:12px; }
+
+/* ===== Progress compare ===== */
+.prog-compare { display:flex; flex-direction:column; gap:15px; }
+.pc-row {}
+.pc-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.pc-name { font-size:13px; font-weight:600; color:var(--slate-700); }
+.pc-gap { font-size:11px; font-weight:600; color:var(--ok); }
+.pc-gap.behind { color:var(--danger); }
+.pc-track { position:relative; height:9px; background:var(--slate-100); border-radius:6px; }
+.pc-actual { height:100%; border-radius:6px; transition:width .35s; }
+.pc-expected { position:absolute; top:-3px; width:2px; height:15px; background:var(--slate-700); border-radius:2px; }
+.pc-nums { display:flex; justify-content:space-between; margin-top:5px; font-size:11px; font-weight:600; color:var(--slate-600); }
+.note { display:flex; align-items:center; gap:8px; margin-top:18px; padding:11px 13px; background:var(--danger-soft); border:1px solid var(--danger-bd); border-radius:10px; font-size:12.5px; color:var(--slate-700); }
+.note svg { color:var(--danger); flex:0 0 auto; }
+.note b { color:var(--slate-900); }
+
+/* ===== View container ===== */
+.view {}
+
+/* ===== Responsive: wide screens ===== */
+@media (min-width:1180px) {
+  .grid-2 { grid-template-columns:1.7fr 1fr; align-items:start; }
+}
+@media (max-width:900px) {
+  .sidebar { width:200px; flex-basis:200px; }
+  .kpi-row { grid-template-columns:1fr; }
+}
+::-webkit-scrollbar { width:10px; height:10px; }
+::-webkit-scrollbar-thumb { background:var(--slate-300); border-radius:6px; border:2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background:var(--slate-400); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- ===== data.jsx ===== -->
+<script type="text/babel">
+// ===== 일정관리 대시보드 — 샘플 데이터 & 계산 로직 =====
+// 데이터 기준 시점(오늘)
+const TODAY = new Date('2026-06-12T00:00:00');
+const LAST_UPDATED = '2026-06-12 09:14';
+
+// 지연사유 분류 (PRD 7개)
+const DELAY_REASONS = [
+  '승인 대기', '요건 변경', '리소스 부족', '외부 의존',
+  '기술적 문제', '일정 재조정', '기타',
+];
+
+// 원천 데이터 (Google Sheets 직접 입력분 모사)
+// 진행률 컬럼 외 예상진행률/지연여부/지연일수는 계산값
+const RAW_ROWS = [
+  { 담당자: '김민준', 프로젝트명: '[영업] 3분기 영업전략 수립',   시작일: '2026-05-01', 종료일: '2026-06-30', 진행률: 73,  지연사유: '승인 대기' },
+  { 담당자: '김민준', 프로젝트명: '[영업] 주요고객 재계약 협상',  시작일: '2026-04-15', 종료일: '2026-06-05', 진행률: 70,  지연사유: '외부 의존' },
+  { 담당자: '김민준', 프로젝트명: '[정보] 대시보드 PoC',         시작일: '2026-05-25', 종료일: '2026-06-18', 진행률: 78,  지연사유: '' },
+  { 담당자: '이서연', 프로젝트명: '[구매] 원자재 공급사 재선정',  시작일: '2026-05-10', 종료일: '2026-06-20', 진행률: 30,  지연사유: '리소스 부족' },
+  { 담당자: '이서연', 프로젝트명: '[구매] 연간 구매계약 갱신',    시작일: '2026-03-01', 종료일: '2026-05-31', 진행률: 85,  지연사유: '일정 재조정' },
+  { 담당자: '이서연', 프로젝트명: '[영업] 파트너십 MOU 체결',     시작일: '2026-05-01', 종료일: '2026-06-12', 진행률: 100, 지연사유: '' },
+  { 담당자: '박지훈', 프로젝트명: '[정보] ERP 모듈 업그레이드',   시작일: '2026-04-01', 종료일: '2026-07-15', 진행률: 72,  지연사유: '기술적 문제' },
+  { 담당자: '박지훈', 프로젝트명: '[정보] 사내 보안점검 자동화',  시작일: '2026-05-20', 종료일: '2026-06-25', 진행률: 20,  지연사유: '요건 변경' },
+  { 담당자: '박지훈', 프로젝트명: '[구매] 공급망 리스크 점검',    시작일: '2026-04-10', 종료일: '2026-06-08', 진행률: 65,  지연사유: '외부 의존' },
+  { 담당자: '최수아', 프로젝트명: '[영업] 신규시장 진입 조사',    시작일: '2026-05-05', 종료일: '2026-06-15', 진행률: 95,  지연사유: '' },
+  { 담당자: '최수아', 프로젝트명: '[구매] 물류비 절감 프로젝트',  시작일: '2026-04-20', 종료일: '2026-08-01', 진행률: 55,  지연사유: '' },
+  { 담당자: '최수아', 프로젝트명: '[정보] API 연동 정비',        시작일: '2026-06-03', 종료일: '2026-06-17', 진행률: 35,  지연사유: '' },
+  { 담당자: '정해린', 프로젝트명: '[정보] 데이터 마이그레이션',   시작일: '2026-05-15', 종료일: '2026-06-10', 진행률: 100, 지연사유: '' },
+  { 담당자: '정해린', 프로젝트명: '[영업] CRM 도입 파일럿',      시작일: '2026-06-01', 종료일: '2026-07-30', 진행률: 22,  지연사유: '일정 재조정' },
+];
+
+// 전주(지난주) 지연 업무 수 — 증감 비교용 (모사값)
+const LAST_WEEK = { 지연업무수: 4, 평균지연일수: 8.0 };
+
+function parseDate(s) { return new Date(s + 'T00:00:00'); }
+function dayDiff(a, b) { return Math.round((a - b) / 86400000); }
+
+// 부서 태그 파싱: "[영업] ..." → "영업"
+function parseDept(name) {
+  const m = name.match(/^\[([^\]]+)\]/);
+  return m ? m[1] : '미지정';
+}
+
+function computeRow(r, idx) {
+  const start = parseDate(r.시작일);
+  const end = parseDate(r.종료일);
+  const totalDays = Math.max(1, dayDiff(end, start));
+  const elapsed = dayDiff(TODAY, start);
+  let 예상진행률 = Math.round((elapsed / totalDays) * 100);
+  예상진행률 = Math.max(0, Math.min(100, 예상진행률));
+
+  const 완료 = r.진행률 >= 100;
+  const 마감초과 = end < TODAY && !완료;
+  const 지연여부 = !완료 && 예상진행률 > r.진행률;
+
+  // 지연일수: 마감초과면 오늘-종료일, 진행중 지연이면 진행률 격차를 기간으로 환산
+  let 지연일수 = 0;
+  if (마감초과) 지연일수 = dayDiff(TODAY, end);
+  else if (지연여부) 지연일수 = Math.round(((예상진행률 - r.진행률) / 100) * totalDays);
+
+  // 마감 7일 이내 + 미완료 → 주의
+  const daysToDeadline = dayDiff(end, TODAY);
+  const 주의 = !완료 && !마감초과 && daysToDeadline >= 0 && daysToDeadline <= 7;
+
+  let status = 'normal';
+  if (완료) status = 'done';
+  else if (지연여부 || 마감초과) status = 'delayed';
+  else if (주의) status = 'warn';
+
+  return {
+    id: idx,
+    ...r,
+    부서: parseDept(r.프로젝트명),
+    프로젝트표시: r.프로젝트명.replace(/^\[[^\]]+\]\s*/, ''),
+    예상진행률,
+    완료,
+    마감초과,
+    지연여부: 지연여부 || 마감초과,
+    지연일수,
+    주의,
+    잔여일: daysToDeadline,
+    지연사유표시: r.지연사유 || '미입력',
+    status,
+  };
+}
+
+const ALL_TASKS = RAW_ROWS.map(computeRow);
+const ASSIGNEES = [...new Set(ALL_TASKS.map(t => t.담당자))];
+const DEPTS = [...new Set(ALL_TASKS.map(t => t.부서))];
+
+// ===== 집계 =====
+function getKpis(tasks) {
+  const total = tasks.length;
+  const delayed = tasks.filter(t => t.지연여부);
+  const overdue = tasks.filter(t => t.마감초과);
+  const avgDelay = delayed.length
+    ? +(delayed.reduce((s, t) => s + t.지연일수, 0) / delayed.length).toFixed(1)
+    : 0;
+  return {
+    total,
+    delayedCount: delayed.length,
+    delayedRatio: total ? Math.round((delayed.length / total) * 100) : 0,
+    overdueCount: overdue.length,
+    avgDelay,
+    delayedDeltaWeek: delayed.length - LAST_WEEK.지연업무수,
+    avgDelayDeltaWeek: +(avgDelay - LAST_WEEK.평균지연일수).toFixed(1),
+  };
+}
+
+// 지연 원인 분포
+function getReasonDist(tasks) {
+  const delayed = tasks.filter(t => t.지연여부);
+  const map = {};
+  delayed.forEach(t => {
+    const k = t.지연사유 || '미입력';
+    map[k] = (map[k] || 0) + 1;
+  });
+  return Object.entries(map)
+    .map(([reason, count]) => ({ reason, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+// 담당자별 집계
+function getByAssignee(tasks) {
+  return ASSIGNEES.map(name => {
+    const own = tasks.filter(t => t.담당자 === name);
+    const delayed = own.filter(t => t.지연여부);
+    const avgActual = own.length ? Math.round(own.reduce((s, t) => s + t.진행률, 0) / own.length) : 0;
+    const avgExpected = own.length ? Math.round(own.reduce((s, t) => s + t.예상진행률, 0) / own.length) : 0;
+    return {
+      name,
+      total: own.length,
+      delayed: delayed.length,
+      avgActual,
+      avgExpected,
+      gap: avgExpected - avgActual,
+      tasks: own,
+    };
+  }).filter(a => a.total > 0);
+}
+
+Object.assign(window, {
+  TODAY, LAST_UPDATED, DELAY_REASONS, ALL_TASKS, ASSIGNEES, DEPTS,
+  getKpis, getReasonDist, getByAssignee,
+});
+</script>
+
+<!-- ===== components.jsx ===== -->
+<script type="text/babel">
+// ===== 공통 컴포넌트 =====
+const { useState, useMemo, useRef, useEffect } = React;
+
+// --- 아이콘 (inline svg, stroke 기반) ---
+function Icon({ name, size = 18, style }) {
+  const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', style };
+  const paths = {
+    overview: <><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></>,
+    people: <><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 6.2a3 3 0 0 1 0 5.6"/><path d="M18 20a5 5 0 0 0-3-4.6"/></>,
+    alert: <><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></>,
+    clock: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>,
+    arrowUp: <><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></>,
+    arrowDown: <><path d="M12 5v14"/><path d="m6 13 6 6 6-6"/></>,
+    chevron: <path d="m9 6 6 6-6 6"/>,
+    sparkle: <><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 15l.7 1.8L21.5 17.5 19.7 18.2 19 20l-.7-1.8L16.5 17.5 18.3 16.8 19 15Z"/></>,
+    filter: <path d="M3 5h18l-7 8v6l-4 2v-8L3 5Z"/>,
+    refresh: <><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 4v5h-5"/></>,
+    search: <><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></>,
+    close: <><path d="M18 6 6 18"/><path d="M6 6l12 12"/></>,
+    dot: <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>,
+    calendar: <><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></>,
+  };
+  return <svg {...common}>{paths[name]}</svg>;
+}
+
+// --- 상태 배지 ---
+const STATUS_META = {
+  delayed: { label: '지연', cls: 'st-delayed' },
+  warn:    { label: '주의', cls: 'st-warn' },
+  normal:  { label: '정상', cls: 'st-normal' },
+  done:    { label: '완료', cls: 'st-done' },
+};
+function StatusBadge({ status }) {
+  const m = STATUS_META[status] || STATUS_META.normal;
+  return <span className={'badge ' + m.cls}><span className="badge-dot"></span>{m.label}</span>;
+}
+
+// --- 진행률 듀얼 미터: 실제 + 예상(틱) ---
+function ProgressMeter({ actual, expected, status }) {
+  const color = status === 'delayed' ? 'var(--danger)' : status === 'warn' ? 'var(--warn)' : status === 'done' ? 'var(--ok)' : 'var(--slate-500)';
+  return (
+    <div className="meter" title={`실제 ${actual}% · 예상 ~${expected}%`}>
+      <div className="meter-track">
+        <div className="meter-fill" style={{ width: actual + '%', background: color }}></div>
+        <div className="meter-expected" style={{ left: expected + '%' }}></div>
+      </div>
+      <div className="meter-nums">
+        <span className="meter-actual">{actual}%</span>
+        <span className="meter-exp">~{expected}%</span>
+      </div>
+    </div>
+  );
+}
+
+// --- KPI 카드 ---
+function KpiCard({ icon, label, value, unit, sub, delta, deltaGood, tone }) {
+  let deltaEl = null;
+  if (delta !== undefined && delta !== null && delta !== 0) {
+    const up = delta > 0;
+    const good = deltaGood === 'up' ? up : !up;
+    deltaEl = (
+      <span className={'kpi-delta ' + (good ? 'good' : 'bad')}>
+        <Icon name={up ? 'arrowUp' : 'arrowDown'} size={13} />
+        {Math.abs(delta)}{unit === '일' ? '일' : '건'} <span className="kpi-delta-lbl">전주 대비</span>
+      </span>
+    );
+  } else if (delta === 0) {
+    deltaEl = <span className="kpi-delta flat">전주와 동일</span>;
+  }
+  return (
+    <div className={'kpi ' + (tone || '')}>
+      <div className="kpi-top">
+        <span className="kpi-icon"><Icon name={icon} size={17} /></span>
+        <span className="kpi-label">{label}</span>
+      </div>
+      <div className="kpi-value">{value}<span className="kpi-unit">{unit}</span></div>
+      <div className="kpi-foot">
+        {sub && <span className="kpi-sub">{sub}</span>}
+        {deltaEl}
+      </div>
+    </div>
+  );
+}
+
+// --- AI 인사이트 배너 ---
+function AIBanner({ insights }) {
+  const [idx, setIdx] = useState(0);
+  if (!insights.length) return null;
+  const cur = insights[idx];
+  const typeMeta = {
+    이상탐지: { cls: 'ai-anomaly', tag: '이상 탐지' },
+    추세경고: { cls: 'ai-trend', tag: '추세 경고' },
+    기회발견: { cls: 'ai-opp', tag: '기회 발견' },
+  };
+  const tm = typeMeta[cur.type] || typeMeta.이상탐지;
+  return (
+    <div className={'ai-banner ' + tm.cls}>
+      <span className="ai-spark"><Icon name="sparkle" size={18} /></span>
+      <div className="ai-body">
+        <div className="ai-head">
+          <span className="ai-title">AI 인사이트</span>
+          <span className="ai-tag">{tm.tag}</span>
+        </div>
+        <p className="ai-text">{cur.text}</p>
+      </div>
+      {insights.length > 1 && (
+        <div className="ai-nav">
+          <span className="ai-count">{idx + 1}/{insights.length}</span>
+          <button className="ai-btn" onClick={() => setIdx((idx - 1 + insights.length) % insights.length)} aria-label="이전"><Icon name="chevron" size={15} style={{ transform: 'rotate(180deg)' }} /></button>
+          <button className="ai-btn" onClick={() => setIdx((idx + 1) % insights.length)} aria-label="다음"><Icon name="chevron" size={15} /></button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- 가로 막대 (원인 분포) ---
+function ReasonBars({ data }) {
+  const max = Math.max(1, ...data.map(d => d.count));
+  return (
+    <div className="rbars">
+      {data.map(d => (
+        <div className="rbar-row" key={d.reason}>
+          <span className={'rbar-label' + (d.reason === '미입력' ? ' muted' : '')}>{d.reason}</span>
+          <div className="rbar-track">
+            <div className="rbar-fill" style={{ width: (d.count / max * 100) + '%' }}></div>
+          </div>
+          <span className="rbar-count">{d.count}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+Object.assign(window, { Icon, StatusBadge, ProgressMeter, KpiCard, AIBanner, ReasonBars, STATUS_META });
+</script>
+
+<!-- ===== views.jsx ===== -->
+<script type="text/babel">
+// ===== View 1 & View 2 =====
+
+// 필터 적용
+function applyFilters(tasks, f) {
+  return tasks.filter(t => {
+    if (f.assignee !== '전체' && t.담당자 !== f.assignee) return false;
+    if (f.dept !== '전체' && t.부서 !== f.dept) return false;
+    if (f.status === 'delayed' && !t.지연여부) return false;
+    return true;
+  });
+}
+
+// ---------- View 1: 지연 현황 개요 ----------
+function ViewOverview({ filters }) {
+  const [sortKey, setSortKey] = useState('지연일수');
+  const tasks = useMemo(() => applyFilters(ALL_TASKS, filters), [filters]);
+  const kpi = useMemo(() => getKpis(tasks), [tasks]);
+  const reasons = useMemo(() => getReasonDist(tasks), [tasks]);
+
+  const sorted = useMemo(() => {
+    const arr = [...tasks];
+    const rank = { delayed: 0, warn: 1, normal: 2, done: 3 };
+    arr.sort((a, b) => {
+      if (sortKey === '지연일수') return (rank[a.status] - rank[b.status]) || (b.지연일수 - a.지연일수);
+      if (sortKey === '마감일') return new Date(a.종료일) - new Date(b.종료일);
+      if (sortKey === '진행률') return a.진행률 - b.진행률;
+      return 0;
+    });
+    return arr;
+  }, [tasks, sortKey]);
+
+  return (
+    <div className="view">
+      <div className="kpi-row">
+        <KpiCard icon="alert" tone="tone-danger" label="지연 업무" value={kpi.delayedCount} unit="건"
+          sub={`전체 ${kpi.total}건 중 ${kpi.delayedRatio}%`} delta={kpi.delayedDeltaWeek} deltaGood="down" />
+        <KpiCard icon="clock" tone="tone-warn" label="마감 초과" value={kpi.overdueCount} unit="건"
+          sub="종료일 경과 · 미완료" />
+        <KpiCard icon="calendar" label="평균 지연 일수" value={kpi.avgDelay} unit="일"
+          sub="지연 업무 기준" delta={kpi.avgDelayDeltaWeek} deltaGood="down" unitForDelta="일" />
+      </div>
+
+      <div className="grid-2">
+        <section className="card span-main">
+          <div className="card-head">
+            <div>
+              <h2 className="card-title">지연 업무 목록</h2>
+              <p className="card-sub">예상진행률(~)은 기간 비례 계산값입니다</p>
+            </div>
+            <div className="seg">
+              {['지연일수', '마감일', '진행률'].map(k => (
+                <button key={k} className={'seg-btn' + (sortKey === k ? ' active' : '')} onClick={() => setSortKey(k)}>{k} 순</button>
+              ))}
+            </div>
+          </div>
+          <div className="table-wrap">
+            <table className="dtable">
+              <thead>
+                <tr>
+                  <th>상태</th><th>프로젝트</th><th>담당자</th><th className="num">마감일</th>
+                  <th className="meter-col">진행률 (실제 / 예상)</th><th className="num">지연</th><th>지연사유</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map(t => (
+                  <tr key={t.id} className={t.지연여부 ? 'row-delayed' : ''}>
+                    <td><StatusBadge status={t.status} /></td>
+                    <td className="proj">
+                      <span className="dept-tag">{t.부서}</span>
+                      <span className="proj-name">{t.프로젝트표시}</span>
+                    </td>
+                    <td>{t.담당자}</td>
+                    <td className="num">
+                      {t.종료일.slice(5)}
+                      {t.마감초과 && <span className="overdue-flag">초과</span>}
+                      {t.주의 && <span className="warn-flag">D-{t.잔여일}</span>}
+                    </td>
+                    <td className="meter-col"><ProgressMeter actual={t.진행률} expected={t.예상진행률} status={t.status} /></td>
+                    <td className="num">{t.지연여부 ? <span className="delay-days">+{t.지연일수}일</span> : <span className="muted">—</span>}</td>
+                    <td><span className={'reason' + (t.지연사유 ? '' : ' muted')}>{t.지연사유표시}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="card">
+          <div className="card-head">
+            <div>
+              <h2 className="card-title">지연 원인 분포</h2>
+              <p className="card-sub">지연 업무 {kpi.delayedCount}건 기준</p>
+            </div>
+          </div>
+          {reasons.length ? <ReasonBars data={reasons} /> : <p className="empty">해당 조건의 지연 업무가 없습니다.</p>}
+          <div className="legend">
+            <span className="lg-item"><span className="lg-dot st-delayed"></span>지연</span>
+            <span className="lg-item"><span className="lg-dot st-warn"></span>주의 (마감 7일 이내)</span>
+            <span className="lg-item"><span className="lg-dot st-normal"></span>정상</span>
+            <span className="lg-item"><span className="lg-dot st-done"></span>완료</span>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+// ---------- View 2: 담당자별 현황 ----------
+function ViewAssignee({ filters }) {
+  const tasks = useMemo(() => applyFilters(ALL_TASKS, filters), [filters]);
+  const rows = useMemo(() => getByAssignee(tasks), [tasks]);
+  const [open, setOpen] = useState(null);
+
+  const maxTotal = Math.max(1, ...rows.map(r => r.total));
+  const topDelayed = [...rows].sort((a, b) => b.delayed - a.delayed)[0];
+
+  return (
+    <div className="view">
+      <div className="grid-2">
+        <section className="card span-main">
+          <div className="card-head">
+            <div>
+              <h2 className="card-title">담당자별 전체 vs 지연 업무</h2>
+              <p className="card-sub">막대를 클릭하면 해당 담당자 업무가 펼쳐집니다</p>
+            </div>
+            <div className="legend inline">
+              <span className="lg-item"><span className="lg-box total"></span>전체</span>
+              <span className="lg-item"><span className="lg-box delayed"></span>지연</span>
+            </div>
+          </div>
+          <div className="bcompare">
+            {rows.map(r => {
+              const isOpen = open === r.name;
+              return (
+                <div className="bc-block" key={r.name}>
+                  <button className={'bc-row' + (isOpen ? ' open' : '')} onClick={() => setOpen(isOpen ? null : r.name)}>
+                    <span className="bc-name">
+                      <Icon name="chevron" size={14} style={{ transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform .18s' }} />
+                      {r.name}
+                    </span>
+                    <div className="bc-bars">
+                      <div className="bc-bar total" style={{ width: (r.total / maxTotal * 100) + '%' }}>
+                        <span className="bc-val">{r.total}</span>
+                      </div>
+                      <div className="bc-bar delayed" style={{ width: (r.delayed / maxTotal * 100) + '%' }}>
+                        {r.delayed > 0 && <span className="bc-val">{r.delayed}</span>}
+                      </div>
+                    </div>
+                    <span className="bc-ratio">{r.total ? Math.round(r.delayed / r.total * 100) : 0}%</span>
+                  </button>
+                  {isOpen && (
+                    <div className="drill">
+                      {r.tasks.map(t => (
+                        <div className="drill-row" key={t.id}>
+                          <StatusBadge status={t.status} />
+                          <span className="drill-proj"><span className="dept-tag sm">{t.부서}</span>{t.프로젝트표시}</span>
+                          <span className="drill-meter"><ProgressMeter actual={t.진행률} expected={t.예상진행률} status={t.status} /></span>
+                          <span className="drill-delay">{t.지연여부 ? <span className="delay-days">+{t.지연일수}일</span> : <span className="muted">정시</span>}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="card">
+          <div className="card-head">
+            <div>
+              <h2 className="card-title">평균 진행률 비교</h2>
+              <p className="card-sub">담당자별 실제 vs 예상</p>
+            </div>
+          </div>
+          <div className="prog-compare">
+            {rows.map(r => (
+              <div className="pc-row" key={r.name}>
+                <div className="pc-head">
+                  <span className="pc-name">{r.name}</span>
+                  <span className={'pc-gap' + (r.gap > 0 ? ' behind' : '')}>{r.gap > 0 ? `예상 대비 -${r.gap}%p` : '예상 충족'}</span>
+                </div>
+                <div className="pc-track">
+                  <div className="pc-actual" style={{ width: r.avgActual + '%', background: r.gap > 10 ? 'var(--danger)' : r.gap > 0 ? 'var(--warn)' : 'var(--ok)' }}></div>
+                  <div className="pc-expected" style={{ left: r.avgExpected + '%' }}></div>
+                </div>
+                <div className="pc-nums"><span>{r.avgActual}%</span><span className="muted">예상 ~{r.avgExpected}%</span></div>
+              </div>
+            ))}
+          </div>
+          {topDelayed && topDelayed.delayed > 0 && (
+            <div className="note">
+              <Icon name="alert" size={15} />
+              <span><b>{topDelayed.name}</b>님에게 지연이 가장 집중 ({topDelayed.delayed}건)</span>
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { ViewOverview, ViewAssignee, applyFilters });
+</script>
+
+<!-- ===== app.jsx ===== -->
+<script type="text/babel">
+// ===== App Root =====
+
+// AI 인사이트 생성 (PRD 탐지 조건 기반)
+function buildInsights(view, filters) {
+  const tasks = applyFilters(ALL_TASKS, filters);
+  const kpi = getKpis(tasks);
+  const out = [];
+
+  if (view === 'overview') {
+    if (kpi.delayedDeltaWeek >= 2)
+      out.push({ type: '이상탐지', text: `지연 업무가 전주 대비 ${kpi.delayedDeltaWeek}건 증가했습니다. 원인 확인이 필요할 수 있습니다.` });
+    // 기회 발견: 마감 7일 이내 + 진행률 50% 미만
+    const risk = tasks.filter(t => !t.완료 && t.잔여일 >= 0 && t.잔여일 <= 7 && t.진행률 < 50);
+    risk.forEach(t => out.push({ type: '기회발견', text: `[${t.프로젝트표시}] 마감 ${t.잔여일}일 이내이나 진행률이 ${t.진행률}%로 낮습니다. 집중 지원을 검토해볼 수 있습니다.` }));
+    // 추세 경고: 마감초과 + 진행률 정체 업무
+    const stalled = tasks.find(t => t.마감초과 && t.진행률 < 95);
+    if (stalled) out.push({ type: '추세경고', text: `[${stalled.프로젝트표시}] 마감이 ${stalled.지연일수}일 초과되었습니다. 진행 가능 여부 확인을 권장합니다.` });
+  } else {
+    const rows = getByAssignee(tasks);
+    const totalDelayed = rows.reduce((s, r) => s + r.delayed, 0);
+    const top = [...rows].sort((a, b) => b.delayed - a.delayed)[0];
+    if (top && totalDelayed && top.delayed / totalDelayed >= 0.5 && top.delayed >= 2)
+      out.push({ type: '이상탐지', text: `${top.name}님 업무에 지연이 집중되어 있습니다(전체 지연의 ${Math.round(top.delayed / totalDelayed * 100)}%). 지원 방안을 논의해볼 수 있습니다.` });
+    const free = rows.find(r => r.delayed === 0 && r.total > 0);
+    if (free) out.push({ type: '기회발견', text: `${free.name}님은 현재 지연 업무가 없습니다. 업무 재배분을 검토해볼 수 있습니다.` });
+    const behind = rows.filter(r => r.gap >= 20);
+    if (behind.length) out.push({ type: '추세경고', text: `${behind.map(r => r.name).join(', ')}님의 평균 진행률이 예상 대비 20%p 이상 낮습니다. 일정 재조정이 필요할 수 있습니다.` });
+  }
+  if (!out.length) out.push({ type: '기회발견', text: '현재 조건에서 특이 지연 패턴이 감지되지 않았습니다. 안정적으로 진행 중입니다.' });
+  return out;
+}
+
+function Sidebar({ view, setView }) {
+  const items = [
+    { id: 'overview', label: '지연 현황 개요', icon: 'overview' },
+    { id: 'assignee', label: '담당자별 현황', icon: 'people' },
+  ];
+  return (
+    <aside className="sidebar">
+      <div className="brand">
+        <div className="brand-mark">일정</div>
+        <div className="brand-txt">
+          <span className="brand-name">일정관리 대시보드</span>
+          <span className="brand-sub">주간 운영 현황</span>
+        </div>
+      </div>
+      <nav className="nav">
+        <span className="nav-label">화면</span>
+        {items.map(it => (
+          <button key={it.id} className={'nav-item' + (view === it.id ? ' active' : '')} onClick={() => setView(it.id)}>
+            <Icon name={it.icon} size={18} />
+            <span>{it.label}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="side-foot">
+        <div className="update-box">
+          <Icon name="refresh" size={14} />
+          <div>
+            <span className="upd-label">데이터 기준</span>
+            <span className="upd-time">{LAST_UPDATED}</span>
+          </div>
+        </div>
+        <p className="side-note">Google Sheets 저장 시 자동 반영<br/>(주 1회 이상 입력 권장)</p>
+      </div>
+    </aside>
+  );
+}
+
+function FilterBar({ filters, setFilters }) {
+  const set = (k, v) => setFilters(f => ({ ...f, [k]: v }));
+  const active = filters.assignee !== '전체' || filters.dept !== '전체' || filters.status !== 'all';
+  return (
+    <div className="filterbar">
+      <span className="fb-icon"><Icon name="filter" size={15} /></span>
+      <div className="fb-group">
+        <label>담당자</label>
+        <select value={filters.assignee} onChange={e => set('assignee', e.target.value)}>
+          <option>전체</option>
+          {ASSIGNEES.map(a => <option key={a}>{a}</option>)}
+        </select>
+      </div>
+      <div className="fb-group">
+        <label>부서</label>
+        <select value={filters.dept} onChange={e => set('dept', e.target.value)}>
+          <option>전체</option>
+          {DEPTS.map(d => <option key={d}>{d}</option>)}
+        </select>
+      </div>
+      <div className="fb-group">
+        <label>상태</label>
+        <div className="toggle2">
+          <button className={filters.status === 'all' ? 'on' : ''} onClick={() => set('status', 'all')}>전체</button>
+          <button className={filters.status === 'delayed' ? 'on' : ''} onClick={() => set('status', 'delayed')}>지연 중만</button>
+        </div>
+      </div>
+      {active && <button className="fb-clear" onClick={() => setFilters({ assignee: '전체', dept: '전체', status: 'all' })}><Icon name="close" size={13} />초기화</button>}
+    </div>
+  );
+}
+
+function App() {
+  const [view, setView] = useState('overview');
+  const [filters, setFilters] = useState({ assignee: '전체', dept: '전체', status: 'all' });
+  const insights = useMemo(() => buildInsights(view, filters), [view, filters]);
+  const titles = {
+    overview: { t: '지연 현황 개요', d: '전체 지연 상황을 한눈에 파악하고 즉시 논의할 업무를 식별합니다.' },
+    assignee: { t: '담당자별 현황', d: '지연이 집중된 담당자를 파악하여 지원·재배분을 논의합니다.' },
+  };
+  const cur = titles[view];
+
+  return (
+    <div className="app">
+      <Sidebar view={view} setView={setView} />
+      <main className="main">
+        <header className="topbar">
+          <div>
+            <h1 className="page-title">{cur.t}</h1>
+            <p className="page-desc">{cur.d}</p>
+          </div>
+          <div className="top-meta">
+            <span className="meta-chip"><Icon name="calendar" size={14} />{LAST_UPDATED.slice(0, 10)} 기준</span>
+          </div>
+        </header>
+        <div className="scroll">
+          <AIBanner insights={insights} />
+          <FilterBar filters={filters} setFilters={setFilters} />
+          {view === 'overview' ? <ViewOverview filters={filters} /> : <ViewAssignee filters={filters} />}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html> 
